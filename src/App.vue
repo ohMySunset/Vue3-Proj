@@ -5,116 +5,98 @@
                자주 렌더링이 되어야 하는 경우 사용
       v-if : 조건에 맞는 엘리먼트만 판별하여 렌더링해줌
     -->
-    <div v-if="toggle">true</div>
-    <div v-else>false</div>
-    <button @click="onToggle">toggle</button>
     <div class="container">
+      <h4>count: {{ count }}</h4>
+      <h4>doubleCountComputed: {{ doubleCountComputed }}</h4>
+      <h4>doubleCountMethod: {{ doubleCountMethod() }}</h4>
+      <button @click="count++">Plus One</button>
       <h2>To-Do List</h2>  
-      <form @submit.prevent="onSubmit">
-        <div class="d-flex">
-          <div class="flex-grow-1 mr-2">
-            <input 
-              class="form-control"
-              type="text"
-              placeholder="Type new to do"
-              v-model="todo"
-            >
-          </div>   
-          <div>
-            <button
-              class="btn btn-primary"
-              type="submit"
-            >
-              Add
-            </button>
-          </div>
-        </div>      
-        <div v-if="hasError" style="color: red">
-          This field cannot be empty.
-        </div>
-      </form>
-      <div v-if="!todos.length">
-        추가된 Todo가 없습니다.
+       <input 
+          class="form-control"
+          type="text"
+          placeholder="search"
+          v-model="searchText"
+        >
+        <hr/>
+      <TodoSimpleForm @add-todo="addTodo"/>
+      <div v-if="!filterdTodos.length">
+        There is nothing to display.
       </div>  
-      <div 
-        v-for="(todo, index) in todos"
-        :key="todo.id"
-        class="card mt-2"
-      >
-        <div class="card-body p-2 d-flex align-items-center">
-          <div class="form-check flex-grow-1">
-            <input 
-              class="form-check-input"
-              type="checkbox"
-              v-model="todo.completed"
-            >
-            <label 
-              class="form-check-label"
-              :style="todo.completed ? todoStyle : {}"
-              :class="{ todo: todo.completed}"
-            >
-              {{ todo.subject }}
-            </label>
-          </div>
-          <div>
-            <button 
-              class="btn btn-danger btn-sm"
-              @click="deleteTodo(index)"
-            >
-              Delete
-            </button>
-          </div>        
-        </div>
-      </div>
+      <TodoList 
+        :todos="filterdTodos" 
+        @toggle-Todo="toggleTodo"
+        @delete-todo="deleteTodo"
+        /> <!-- 부모컴포넌트 -> 자식 컴포넌트로 데이터 이동 -->
     </div>
   </div>
 </template>
 
 <script>
-import { ref } from 'vue'; 
+import { ref, computed } from 'vue'; 
+import TodoSimpleForm from './components/TodoSimpleForm.vue';
+import TodoList from './components/TodoList.vue';
 
 export default {
+  components: {
+    TodoSimpleForm,
+    TodoList,
+  },
   setup() {
     const toggle = ref(false);
-    const todo = ref('');
     const todos = ref([]);
-    const hasError = ref(false);
     const todoStyle = {
       textDecoration: 'line-through',
       color: 'gray'
     };
 
-    const onSubmit = () => {
-      if(todo.value === ''){
-        hasError.value = true;
-      } else {
-      todos.value.push({
-        id: Date.now(),
-        subject: todo.value,
-        completed: false,
-        });
-        hasError.value = false;
-        todo.value = '';
-      }
+    const toggleTodo = (index) => { // 자식 컴포넌트에서 받은 데이터가 들어옴
+      todos.value[index].completed = !todos.value[index].completed;
+    }
+
+    const addTodo = (todo) => { // 자식 컴포넌트에서 받은 데이터가 들어옴
+      todos.value.push(todo);
     }; 
 
     const onToggle = () => {
       toggle.value = !toggle.value
     }
 
-    const deleteTodo = (index) => {
+    const deleteTodo = (index) => { // 자식 컴포넌트에서 받은 데이터가 들어옴
       todos.value.splice(index, 1);
     }
 
+    const count = ref(1);
+    const doubleCountComputed = computed(() => { // 값을 캐시함
+      return count.value * 2; 
+    });
+
+    const doubleCountMethod = () => { // 매개변수 받을 수 있음
+      return count.value * 2;
+    }
+
+    const searchText = ref('');
+    const filterdTodos = computed(() => {
+      if(searchText.value){
+        return todos.value.filter(todo => {
+          return todo.subject.includes(searchText.value);
+        });
+      }
+      return todos.value;
+    })
+
     return {
-      todo,
       todos,
-      onSubmit,
+      addTodo,
       toggle,
       onToggle,
-      hasError,
       todoStyle,
       deleteTodo,
+      toggleTodo,
+      count,
+      doubleCountComputed,
+      doubleCountMethod,
+      searchText,
+      filterdTodos,
     }
 
   }
