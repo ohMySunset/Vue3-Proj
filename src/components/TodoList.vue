@@ -7,6 +7,7 @@
       >
         <div 
         class="card-body p-2 d-flex align-items-center"
+        style="cursor: pointer"
         @click="moveToPage(todo.id)"
         >
           <div class="form-check flex-grow-1">
@@ -14,7 +15,8 @@
               class="form-check-input"
               type="checkbox"
               :checked="todo.completed"
-              @change="toggleTodo(index)"
+              @change="toggleTodo(index, $event)"
+              @click.stop
             >
             <label 
               class="form-check-label"
@@ -27,7 +29,7 @@
           <div>
             <button 
               class="btn btn-danger btn-sm"
-              @click="deleteTodo(index)"
+              @click.stop="deleteTodo(index)"
             >
               Delete
             </button>
@@ -48,8 +50,8 @@ import { useRouter } from 'vue-router';
     emits: ['toggle-todo', 'delete-todo'],
     setup(props, { emit }) {
         const route = useRouter();
-        const toggleTodo = (index) => {
-            emit('toggle-todo', index);
+        const toggleTodo = (index, event) => {
+            emit('toggle-todo', index, event.target.checked);
         }
 
         const deleteTodo = (index) => {

@@ -91,15 +91,15 @@ export default {
 
     getTodos(); // 맨 처음 리스트 뿌려줌
 
-    const toggleTodo = async (index) => { // 자식 컴포넌트에서 받은 데이터가 들어옴
+    const toggleTodo = async (index, checked) => { // 자식 컴포넌트에서 받은 데이터가 들어옴
       error.value = '';
       const id = todos.value[index].id;
 
       try {
         await axios.patch('http://localhost:3000/todos/' + id, {
-          completed: !todos.value[index].completed
+          completed: checked
         });
-        todos.value[index].completed = !todos.value[index].completed;
+        todos.value[index].completed = checked;
       } catch (err) {
         console.log(err);
         error.value = 'Something went wrong.';
